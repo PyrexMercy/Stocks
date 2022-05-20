@@ -15,13 +15,14 @@ private:
     double total_val; //Брокерский счет
     void brokerage_accout() { total_val = user_shares * share_val; }
 public:
-    Stock(const std::string& company_, long shares_, double share_val_);
+    Stock();
     ~Stock();
     void refill();
-    void buy(long shares_, double share_val_);
-    void sell(long shares_, double share_val_, double user_share_val_);
+    void buy();
+    void sell();
     void show();
-    void show2();
+    void menu();
+    void mainMenu(void);
 };
 
 #endif HEADER_H_

@@ -1,24 +1,47 @@
 ﻿#include <iostream>
 #include <fstream>
+#include <string>
+#include <sstream>
+#include <vector>
 #include "Header.h"
 
+using std::ifstream;
+using std::ofstream;
 using std::cout;
 using std::endl;
+using std::string;
 using std::cin;
+using std::to_string;
+using std::vector;
+
+int choice0 = 0;
+int choice1 = 3;
 
 
-Stock::Stock(const std::string& company_, long shares_, double share_val_)
+Stock::Stock() {}
+
+Stock::~Stock() {}
+
+void AllStocks()
 {
-    company = company_;
-    shares = shares_;
-    share_val = share_val_;
-    user_shares = 0;
-    cash = 0;
-    brokerage_accout();
+    ifstream as("AllStocks.csv", std::ios::app);
+    string index;
+    string company_name;
+    string shares;
+    string share_val;
+
+    while (as.peek() != EOF)
+    {
+        getline(as, index, ',');
+        getline(as, company_name, ',');
+        getline(as, shares, ',');
+        getline(as, share_val, '\n');
+
+        cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_val << endl;
+    }
+    as.close();
 }
 
-Stock::~Stock()
-{}
 
 void Stock::refill()
 {
@@ -30,68 +53,163 @@ void Stock::refill()
 }
 
 
-void Stock::buy(long shares_, double share_val_)
+void Stock::buy()
 {
-    while (cash < (shares_ * share_val_))
-    {
-        double cash_;
-        std::cout << "Please , top up your wallet: ";
-        std::cin >> cash_;
-        cash += cash_;
-    }
-    if (shares_ < 0)
-    {
-        std::cout << "Sorry, shares are over" << std::endl;
-    }
-    else
-    {
-        shares -= shares_;
-        share_val = share_val_;
-        user_shares += shares_;
-        cash -= (user_shares * share_val);
-        brokerage_accout();
-    }
+    string selected_index;
+    string shares_b;
+    string shares_val_b;
+    AllStocks();
+    cout << "Enter the number of requirement company" << endl;
+    cout << ">>";
+    cin >> selected_index;
 
+    ifstream as("AllStocks.csv", std::ios::app);
+    ofstream asnew("AllStocksNew.csv");
+    string index;
+    string company_name;
+    string shares;
+    string share_val;
+    string line;
+    string word;
+    string roll;
+    vector<string> row;
+
+
+    while (as.peek() != EOF)
+    {
+        getline(as, index, ',');
+        getline(as, company_name, ',');
+        getline(as, shares, ',');
+        getline(as, share_val, '\n');
+
+        if (selected_index == index)
+        {
+            cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_val << endl;
+            cout << "Write the number of shares: ";
+            cin >> shares_b;
+            if (stol(shares_b) > stol(shares))
+            {
+                cout << "Sorry, the number of shares exceeds the current value" << endl;
+            }
+            else if (stol(shares_b) < 0)
+            {
+                cout << "Sorry, shares are over" << endl;
+            }
+            else
+            {
+                long shares_b2 = stol(shares_b);
+                long shares2 = stol(shares);
+                shares2 -= shares_b2;
+                shares = to_string(shares2);
+            }
+            cout << "Write the share price" << endl;
+            cin >> shares_val_b;
+            if (stol(shares_val_b) < stol(share_val))
+            {
+                cout << "Sorry, share price cannot be less than the current" << endl;
+            }
+            else
+            {
+
+            }
+            while (!as.eof())
+            {
+                row.clear();
+                getline(as, line);
+                std::stringstream s(line);
+                while (getline(s, word, ','))
+                {
+                    row.push_back(word);
+                }
+                roll = row[0];
+                int row_size = row.size();
+
+                if (roll == selected_index)
+                {
+                    std::stringstream convert;
+                    convert << shares;
+                    row[3] = convert.str();
+                    if (!as.eof())
+                    {
+                        for (int i = 0; i < row_size - 1; i++)
+                        {
+                            asnew << row[i] << ", ";
+                        }
+                        asnew << row[row_size - 1] << "\n";
+                    }
+
+                }
+                else
+                {
+                    if (!as.eof())
+                    {
+                        for (int i = 0; i < row_size - 1; i++)
+                        {
+                            asnew << row[row_size - 1] << "\n";
+                        }
+                    }
+                    if (as.eof())
+                        break;
+                }
+                as.close();
+                asnew.close();
+                remove("AllStocks.csv");
+                rename("AllStocksNew.csv", "AllStocks.csv");
+            }
+        }
+
+    }
+    as.close();
 }
 
-void Stock::sell(long shares_, double share_val_, double user_share_val_)
-{
-    if (shares_ < 0)
-    {
-        std::cout << "Sorry, you don't have shares" << std::endl;
-    }
-    else if (shares_ > shares)
-    {
-        std::cout << "You can't sell more than you have" << std::endl;
-    }
-    else
-    {
-        shares += shares_;
-        user_share_val = user_share_val_;
-        user_shares -= shares_;
-        total_val += (user_share_val - share_val) * shares_;
-        share_val = (share_val_ + user_share_val) / 2;
-    }
-}
+void Stock::sell()
+{}
 
 void Stock::show()
+{}
+
+
+void Stock::mainMenu(void)
 {
-    using std::cout;
-    using std::endl;
-    cout << "Wallet: " << cash << endl;
-    cout << "Company: " << company << endl;
-    cout << "Shares: " << shares << endl;
-    cout << "Share Price: " << share_val << endl;
-    cout << "User Shares: " << user_shares << endl;
-    cout << "Brokerage accout: " << total_val << endl << endl;
+    cout << "Stocks" << endl;
+    cout << "1. Show share list" << endl;
+    cout << "2. Buy shares" << endl;
+    cout << "3. Sell shares" << endl;
+    cout << ">>";
+    std::cin >> choice1;
 }
 
-void Stock::show2() 
+void Stock::menu()
 {
-    std::cout << share_val << std::endl;
+    do
+    {
+        choice1 = 0;
+        mainMenu();
+        switch (choice1)
+        {
+        case 1:
+            show();
+            break;
+        case 2:
+            buy();
+            break;
+        case 3:
+            sell();
+            break;
+        default:
+            break;
+        }
+    } while (choice0 != 4);
+
+}
+int main()
+{
+    Stock obj1;
+    obj1.menu();
 }
 
-void menu();
+
+/*void menu();
 void mainMenu();
 void buy_shares();
 void optionsMenu();
@@ -105,9 +223,6 @@ struct Stock_records
     long shares;
     double share_val;
 };
-
-
-
 
 void buy_shares(Stock_records* s_r)
 {
@@ -148,7 +263,6 @@ void sell_shares(Stock_records *s_r)
     
 }
 
-
 void show_shares(Stock_records *s_r)
 {
     int i;
@@ -159,7 +273,6 @@ void show_shares(Stock_records *s_r)
         cout << "Share Price: " << (s_r + i)->share_val << endl;
     }
 }
-
 
 void mainMenu(void)
 {
@@ -195,7 +308,6 @@ void menu(Stock_records *s_r)
     } while (choice1 != 4);
 }
 
-
 int main()
 {
     Stock_records *Stocks = new Stock_records [3];
@@ -203,4 +315,4 @@ int main()
 
     return 0;
 
-}
+}*/
