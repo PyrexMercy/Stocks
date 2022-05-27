@@ -1,318 +1,415 @@
-﻿#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
+#define _CRT_SECURE_NO_WARNINGS
 #include "Header.h"
 
+
+
+using std::fstream;
 using std::ifstream;
 using std::ofstream;
+using std::string;
 using std::cout;
 using std::endl;
-using std::string;
 using std::cin;
 using std::to_string;
-using std::vector;
+using std::ios;
 
-int choice0 = 0;
-int choice1 = 3;
+int choice_1 = 0;
+int choice_2 = 3;
+string selected_user = "James";
 
-
-Stock::Stock() {}
-
-Stock::~Stock() {}
-
-void AllStocks()
+void Stock::allStock()
 {
-    ifstream as("AllStocks.csv", std::ios::app);
-    string index;
-    string company_name;
-    string shares;
-    string share_val;
+	Wallet::current_user->get_login();
+	vector<Card*> test=*Wallet::current_user->get_accounts();
+	vector<Card*>::iterator it = test.begin();
+	while(it != test.end()) {
+		if ((*it)->dep_type == 2)
+			break;
+	}
+	double amount = (*it)->get_value();
 
-    while (as.peek() != EOF)
-    {
-        getline(as, index, ',');
-        getline(as, company_name, ',');
-        getline(as, shares, ',');
-        getline(as, share_val, '\n');
+	fstream as("AllStocks.csv", std::ios::in);
 
-        cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_val << endl;
-    }
-    as.close();
+	string index;
+	string company_name;
+	string shares;
+	string share_price;
+
+	while (as.peek() != EOF)
+	{
+		getline(as, index, ';');
+		getline(as, company_name, ';');
+		getline(as, shares, ';');
+		getline(as, share_price, '\n');
+
+		cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_price << endl;
+	}
+	as.close();
 }
 
-
-void Stock::refill()
+void Stock::userShares()
 {
-    double cash_;
-    std::cout << "Please, top up your wallet: ";
-    std::cin >> cash_;
-    cash = cash_;
-    std::cout << cash << std::endl;
+	fstream us("UserShares.csv", std::ios::in);
+
+	string index;
+	string user;
+	string company_name;
+	string shares;
+	string share_price;
+	string total_value;
+	int i = 1;
+
+	while (us.peek() != EOF)
+	{
+		getline(us, index, ';');
+		getline(us, user, ';');
+		getline(us, company_name, ';');
+		getline(us, shares, ';');
+		getline(us, share_price, ';');
+		getline(us, total_value, '\n');
+
+		if (selected_user == user)
+		{
+			cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_price << endl;
+		}
+	}
+	us.close();
 }
 
+void Stock::totalValue()
+{
+	fstream us("UserShares.csv", std::ios::in);
+
+	string user;
+	string company_name;
+	string shares;
+	string share_price;
+	string total_value;
+	double total_value_1;
+
+	while (us.peek() != EOF)
+	{
+		getline(us, user, ';');
+		getline(us, company_name, ';');
+		getline(us, shares, ';');
+		getline(us, share_price, ';');
+		getline(us, total_value, '\n');
+
+		if (selected_user == user)
+		{
+			total_value_1 = stol(shares) * stod(share_price);
+			cout << "Total Value: " << total_value_1 << endl;
+		}
+	}
+	us.close();
+}
 
 void Stock::buy()
 {
-    string selected_index;
-    string shares_b;
-    string shares_val_b;
-    AllStocks();
-    cout << "Enter the number of requirement company" << endl;
-    cout << ">>";
-    cin >> selected_index;
+	string selected_index;
+	long purchased_shares;
+	double purchased_share_price;
+	string user;
+	string selected_company_name;
+	double total_value;
+	int i = 1;
 
-    ifstream as("AllStocks.csv", std::ios::app);
-    ofstream asnew("AllStocksNew.csv");
-    string index;
-    string company_name;
-    string shares;
-    string share_val;
-    string line;
-    string word;
-    string roll;
-    vector<string> row;
+	string type = "Buy";
 
+	allStock();
 
-    while (as.peek() != EOF)
-    {
-        getline(as, index, ',');
-        getline(as, company_name, ',');
-        getline(as, shares, ',');
-        getline(as, share_val, '\n');
+	cout << "Enter the number of requirement company: ";
+	cin >> selected_index;
 
-        if (selected_index == index)
-        {
-            cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_val << endl;
-            cout << "Write the number of shares: ";
-            cin >> shares_b;
-            if (stol(shares_b) > stol(shares))
-            {
-                cout << "Sorry, the number of shares exceeds the current value" << endl;
-            }
-            else if (stol(shares_b) < 0)
-            {
-                cout << "Sorry, shares are over" << endl;
-            }
-            else
-            {
-                long shares_b2 = stol(shares_b);
-                long shares2 = stol(shares);
-                shares2 -= shares_b2;
-                shares = to_string(shares2);
-            }
-            cout << "Write the share price" << endl;
-            cin >> shares_val_b;
-            if (stol(shares_val_b) < stol(share_val))
-            {
-                cout << "Sorry, share price cannot be less than the current" << endl;
-            }
-            else
-            {
+	fstream as("AllStocks.csv", ios::in);
+	fstream ns("NewStocks.csv", ios::out);
+	fstream tr("Transaction.csv", ios::app);
+	fstream us("UserShares.csv", ios::app);
+	fstream nus("NewUserShares.csv", ios::out);
 
-            }
-            while (!as.eof())
-            {
-                row.clear();
-                getline(as, line);
-                std::stringstream s(line);
-                while (getline(s, word, ','))
-                {
-                    row.push_back(word);
-                }
-                roll = row[0];
-                int row_size = row.size();
+	string index;
+	string company_name;
+	string shares;
+	string share_price;
+	string total_value_1;
 
-                if (roll == selected_index)
-                {
-                    std::stringstream convert;
-                    convert << shares;
-                    row[3] = convert.str();
-                    if (!as.eof())
-                    {
-                        for (int i = 0; i < row_size - 1; i++)
-                        {
-                            asnew << row[i] << ", ";
-                        }
-                        asnew << row[row_size - 1] << "\n";
-                    }
+	while (as.peek() != EOF)
+	{
+		getline(as, index, ';');
+		getline(as, company_name, ';');
+		getline(as, shares, ';');
+		getline(as, share_price, '\n');
 
-                }
-                else
-                {
-                    if (!as.eof())
-                    {
-                        for (int i = 0; i < row_size - 1; i++)
-                        {
-                            asnew << row[row_size - 1] << "\n";
-                        }
-                    }
-                    if (as.eof())
-                        break;
-                }
-                as.close();
-                asnew.close();
-                remove("AllStocks.csv");
-                rename("AllStocksNew.csv", "AllStocks.csv");
-            }
-        }
+		if (selected_index == index)
+		  {
+			cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_price << endl;
+			cout << "Enter the number of shares: ";
+			cin >> purchased_shares;
+			if (purchased_shares > stol(shares))
+			{
+				cout << "Sorry, the number of shares exceeds the current value" << endl;
+			}
+			else if (purchased_shares < 0)
+			{
+				cout << "Please, enter a valid number" << endl;
+			}
+			else
+			{
+				long shares_1 = stol(shares);
+				shares_1 -= purchased_shares;
+				shares = to_string(shares_1);
+			}
+			cout << "Write the share price: ";
+			cin >> purchased_share_price;
+			if (purchased_share_price < stol(share_price))
+			{
+				cout << "Sorry, share price cannot be less than the current" << endl;
+			}
+			else
+			{
+				//Изменение цены
+			}
+			total_value = purchased_shares * purchased_share_price;
+			ns << index << ';' << company_name << ';' << shares << ';' << share_price << '\n';
+			tr << selected_user << ';' << company_name << ';' << purchased_shares << ';' << purchased_share_price << ';' << type << ';' << total_value << '\n';
+			us << i << ';' << selected_user << ';' << company_name << ';' << purchased_shares << ';' << purchased_share_price << ';' << total_value << '\n';
+			selected_company_name = company_name;
 
-    }
-    as.close();
+		}
+		else
+		{
+			ns << index << ';' << company_name << ';' << shares << ';' << share_price << '\n';
+		}
+	}
+	ns.close();
+	as.close();
+	tr.close();
+	us.close();
+	nus.close();
+
+	as.open("AllStocks.csv", ios::out);
+	ns.open("NewStocks.csv", ios::in);
+
+	while (ns.peek() != EOF)
+	{
+		getline(ns, index, ';');
+		getline(ns, company_name, ';');
+		getline(ns, shares, ';');
+		getline(ns, share_price, '\n');
+		as << index << ';' << company_name << ';' << shares << ';' << share_price << '\n';
+	}
+	ns.close();
+	as.close();
+	remove("NewStocks.csv");
+
+	us.open("UserShares.csv", ios::in);
+	nus.open("NewUserShares.csv", ios::out);
+
+	long user_shares = 0;
+
+	while (us.peek() != EOF)
+	{
+		getline(us, index, ';');
+		getline(us, user, ';');
+		getline(us, company_name, ';');
+		getline(us, shares, ';');
+		getline(us, share_price, ';');
+		getline(us, total_value_1, '\n');
+
+		if (selected_user == user)
+		{
+			if (selected_company_name == company_name)
+			{
+				long shares_2 = stol(shares);
+				user_shares += shares_2; //Количество акций пользователя
+				total_value_1 = user_shares * stod(share_price);//ОБщая сумма покупки
+				nus << i << ';' << user << ';' << company_name << ';' << user_shares << ';' << share_price << ';' << total_value_1 << '\n';
+				i++;
+			}
+		}
+	}
+	us.close();
+	nus.close();
+
+	us.open("UserShares.csv", ios::out);
+	nus.open("NewUserShares.csv", ios::in);
+
+	while (nus.peek() != EOF)
+	{
+		getline(nus, index, ';');
+		getline(nus, user, ';');
+		getline(nus, company_name, ';');
+		getline(nus, shares, ';');
+		getline(nus, share_price, ';');
+		getline(nus, total_value_1, '\n');
+		total_value = stol(shares) * stod(share_price);
+		us << index << ';' << user << ';' << company_name << ';' << shares << ';' << share_price << ';' << total_value << '\n';
+	}
+	nus.close();
+	us.close();
+	remove("NewUserShares.csv");
 }
 
 void Stock::sell()
-{}
+{
+	string selected_index;
+	long tradable_shares;
+	double tradable_share_price;
+	string selected_company_name;
+	double avg_share_price;
 
-void Stock::show()
-{}
 
+	string type = "Sell";
+
+	userShares();
+
+	cout << "Enter the number of requirement company: ";
+	cin >> selected_index;
+
+	fstream as("AllStocks.csv", ios::in);
+	fstream ns("NewStocks.csv", ios::out);
+	fstream tr("Transaction.csv", ios::app);
+	fstream us("UserShares.csv", ios::in);
+	fstream nus("NewUserShares.csv", ios::out);
+
+	string index;
+	string user;
+	string company_name;
+	string shares;
+	string share_price;
+	string total_value;
+
+	while (us.peek() != EOF)
+	{
+		getline(us, index, ';');
+		getline(us, user, ';');
+		getline(us, company_name, ';');
+		getline(us, shares, ';');
+		getline(us, share_price, ';');
+		getline(us, total_value, '\n');
+		if (selected_user == user)
+		{
+			if (selected_index == index)
+			{
+				cout << index << ". Company: " << company_name << "; Shares: " << shares << "; Share Value: " << share_price << endl;
+				cout << "Enter the number of shares: ";
+				cin >> tradable_shares;
+				if (tradable_shares > stol(shares))
+				{
+					cout << "Sorry, the number of shares exceeds the current value" << endl;
+				}
+				else if (tradable_shares < 0)
+				{
+					cout << "Please, enter a valid number" << endl;
+				}
+				else
+				{
+					long shares_1 = stol(shares);
+					shares_1 -= tradable_shares;
+					shares = to_string(shares_1);
+				}
+				cout << "Write the share price: ";
+				cin >> tradable_share_price;
+				if (tradable_share_price < 0)
+				{
+					cout << "Please, enter a valid number" << endl;
+				}
+				double profit = (tradable_share_price - stod(share_price)) * tradable_shares; //Выгода от проодажи
+				avg_share_price = (stod(share_price) + tradable_share_price) / 2; //Усредненная цена за акцию
+				double total_value_1 = stol(shares) * avg_share_price + profit; //Общая сумма всех акций пользователя + выгода с продажи
+				double total_value_2 = tradable_shares * tradable_share_price; //ОБщая сумма продажи
+				tr << selected_user << ';' << company_name << ';' << tradable_shares << ';' << tradable_share_price << ';' << type << ';' << total_value_2 << '\n';
+				nus << index << ';' << selected_user << ';' << company_name << ';' << shares << ';' << avg_share_price << ';' << total_value_1 << '\n';
+				selected_company_name = company_name;
+			}
+			else
+			{
+				nus << index << ';' << selected_user << ';' << company_name << ';' << shares << ';' << share_price << ';' << total_value << '\n';
+			}
+		}
+		else
+		{
+			nus << index << ';' << selected_user << ';' << company_name << ';' << shares << ';' << share_price << ';' << total_value << '\n';
+		}
+	}
+	ns.close();
+	as.close();
+	tr.close();
+	us.close();
+	nus.close();
+
+	as.open("AllStocks.csv", ios::in);
+	ns.open("NewStocks.csv", ios::out);
+
+	while (as.peek() != EOF)
+	{
+		getline(as, index, ';');
+		getline(as, company_name, ';');
+		getline(as, shares, ';');
+		getline(as, share_price, '\n');
+		if (selected_company_name == company_name)
+		{
+			shares += tradable_shares;
+			ns << index << ';' << company_name << ';' << shares << ';' << share_price << '\n';
+		}
+		else
+		{
+			ns << index << ';' << company_name << ';' << shares << ';' << share_price << '\n';
+		}
+	}
+	as.close();
+	ns.close();
+
+	as.open("AllStocks.csv", ios::out);
+	ns.open("NewStocks.csv", ios::in);
+
+	while (ns.peek() != EOF)
+	{
+		getline(ns, index, ';');
+		getline(ns, company_name, ';');
+		getline(ns, shares, ';');
+		getline(ns, share_price, '\n');
+		as << index << ';' << company_name << ';' << shares << ';' << share_price << '\n';
+	}
+	ns.close();
+	as.close();
+}
 
 void Stock::mainMenu(void)
 {
-    cout << "Stocks" << endl;
-    cout << "1. Show share list" << endl;
-    cout << "2. Buy shares" << endl;
-    cout << "3. Sell shares" << endl;
-    cout << ">>";
-    std::cin >> choice1;
+	cout << "Stocks" << endl;
+	cout << "1. Show your share list" << endl;
+	cout << "2. Buy shares" << endl;
+	cout << "3. Sell Shares" << endl;
+	cout << ">>";
+	cin >> choice_1;
 }
 
 void Stock::menu()
 {
-    do
-    {
-        choice1 = 0;
-        mainMenu();
-        switch (choice1)
-        {
-        case 1:
-            show();
-            break;
-        case 2:
-            buy();
-            break;
-        case 3:
-            sell();
-            break;
-        default:
-            break;
-        }
-    } while (choice0 != 4);
-
-}
-int main()
-{
-    Stock obj1;
-    obj1.menu();
-}
-
-
-/*void menu();
-void mainMenu();
-void buy_shares();
-void optionsMenu();
-void options();
-int choice1 = 0;
-int choice2 = 3;
-  
-struct Stock_records
-{
-    std::string company;
-    long shares;
-    double share_val;
-};
-
-void buy_shares(Stock_records* s_r)
-{
-    for (int i = 0; i < 3; i++)
-    {
-        cout << "Company:";
-        cin >> (s_r + i)->company;
-        cout << "Shares:";
-        cin >> (s_r + i)->shares;
-        cout << "Share Price:";
-        cin >> (s_r + i)->share_val;
-    }
- 
-}
-
-void sell_shares(Stock_records *s_r)
-{
-    std::string company_c;
-    long shares_s;
-    double shares_val_s;
-    cout << "Write the company name" << endl;
-    cin >> company_c;
-    while (company_c != s_r->company)
-    {
-        cout << "This company doesn't exist" << endl;
-        cin >> company_c;
-    }
-	cout << "Write the number of shares: ";
-	cin >> shares_s;
-	while (shares_s > s_r->shares)
+	do
 	{
-		cout << "You can't sell more than you have" << endl;
-        cin >> shares_s;
-	}
-	s_r->shares -= shares_s;
-	cout << "Write the price of share: ";
-	cin >> shares_val_s;
-    
+		choice_2 = 0;
+		mainMenu();
+		switch (choice_1)
+		{
+		case 1:
+			userShares();
+			break;
+		case 2:
+			buy();
+			break;
+		case 3:
+			sell();
+			break;
+
+		default:
+			break;
+		}
+	} while (choice_1 != 4);
 }
 
-void show_shares(Stock_records *s_r)
+int Stock::main()
 {
-    int i;
-    for ( i = 0; i < 3; i++)
-    {
-        cout << "Company: " << (s_r + i)->company << endl;
-        cout << "Shares: " << (s_r + i)->shares << endl;
-        cout << "Share Price: " << (s_r + i)->share_val << endl;
-    }
+	menu();
 }
-
-void mainMenu(void)
-{
-    cout << "Stocks" << endl;
-    cout << "1. Show share list" << endl;
-    cout << "2. Buy shares" << endl;
-    cout << "3. Sell shares" << endl;
-    cout << ">>";
-    std::cin >> choice1;
-}
-
-void menu(Stock_records *s_r)
-{
-    do
-    {
-        choice2 = 0;
-        mainMenu();
-        switch (choice1)
-        {
-        case 1:
-            show_shares(s_r);
-            break;
-        case 2:
-            buy_shares(s_r);
-            break;
-        case 3:
-            sell_shares(s_r);
-            break;
-
-        default:
-            break;
-        }
-    } while (choice1 != 4);
-}
-
-int main()
-{
-    Stock_records *Stocks = new Stock_records [3];
-    menu(Stocks);
-
-    return 0;
-
-}*/
